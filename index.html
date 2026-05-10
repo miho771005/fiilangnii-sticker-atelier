@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>fiilangnii 紙屋日誌</title>
+    <style>
+        /* 這裡放妳的 CSS (長相) */
+        body { background-color: #D6D2C4; display: flex; flex-direction: column; align-items: center; padding: 20px; font-family: sans-serif; margin: 0; }
+        #paper-area { width: 320px; height: 420px; background-color: #F5F5F1; box-shadow: 0 10px 30px rgba(0,0,0,0.1); position: relative; padding: 20px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        #typing-area { width: 100%; height: 100%; background: transparent; border: none; outline: none; font-size: 18px; line-height: 1.6; color: #555; resize: none; }
+        .creator-panel { width: 320px; background: #E8E4D9; padding: 15px; border-radius: 12px; text-align: center; box-sizing: border-box; margin-bottom: 10px; }
+        .sticker { position: absolute; cursor: move; font-size: 28px; user-select: none; z-index: 2; opacity: 0.9; }
+        #button-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 320px; }
+        button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer; margin: 2px; }
+        #emoji-input { width: 60px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="paper-area">
+        <textarea id="typing-area" placeholder="歡迎使用 fiilangnii 紙屋日誌小工具！have fun :)"></textarea>
+    </div>
+
+    <div class="creator-panel">
+        <p style="margin: 5px 0;">內容 <input type="text" id="emoji-input" maxlength="10" placeholder="🔲"></p>
+        <p style="font-size: 12px; color: #666; margin: 5px 0;">
+            濃淡調整：<input type="range" id="saturate-slider" min="0" max="1" step="0.1" value="0.4">
+        </p>
+        <button onclick="createNewButton()">生成專屬按鈕</button>
+    </div>
+
+    <div id="button-list">
+        <button onclick="addSticker('🌙')">🌙</button>
+        <button onclick="addSticker('⭐')">⭐</button>
+        <button onclick="addSticker('🍀')">🍀</button>
+    </div>
+
+    <div style="margin-top: 20px; color: #999; font-size: 11px; text-align: center; letter-spacing: 1px;">
+        💡 提示：對著貼紙「點兩下」即可移除<br>
+        創作者：Tachibana Miho (Yojunia)
+    </div>
+
+    <script>
+        // 這裡放妳的 JS (靈魂)
+        function createStickerElement(content, isText = false, customSaturate = 0.4) {
+            const paper = document.getElementById('paper-area');
+            const sticker = document.createElement('div');
+            sticker.className = 'sticker';
+            sticker.innerText = content;
+            let filterVal = `saturate(${customSaturate}) brightness(1.1) drop-shadow(2px 4px 6px rgba(0,0,0,0.15))`;
+            if(customSaturate == 0) filterVal = `saturate(0) brightness(0.5) drop-shadow(2px 4px 6px rgba(0,0,0,0.15))`;
+            sticker.style.filter = filterVal;
+            sticker.style.left = Math.random() * 200 + 'px';
+            sticker.style.top = Math.random() * 300 + 'px';
+            const randomRotate = Math.floor(Math.random() * 31) - 15;
+            sticker.style.transform = `rotate(${randomRotate}deg)`;
+            const moveHandler = (e) => {
+                e.preventDefault();
+                const rect = paper.getBoundingClientRect();
+                const touch = e.touches[0];
+                sticker.style.left = (touch.clientX - rect.left - 20) + 'px';
+                sticker.style.top = (touch.clientY - rect.top - 20) + 'px';
+            };
+            sticker.addEventListener('touchstart', (e) => { sticker.addEventListener('touchmove', moveHandler, { passive: false }); });
+            sticker.addEventListener('touchend', () => { sticker.removeEventListener('touchmove', moveHandler); });
+            sticker.ondblclick = () => sticker.remove();
+            paper.appendChild(sticker);
+        }
+        function addSticker(emoji) { createStickerElement(emoji, false, 0.4); }
+        function createNewButton() {
+            const input = document.getElementById('emoji-input');
+            const slider = document.getElementById('saturate-slider');
+            const content = input.value;
+            const saturateVal = slider.value;
+            if (!content) return;
+            const buttonList = document.getElementById('button-list');
+            const newBtn = document.createElement('button');
+            newBtn.innerText = content;
+            newBtn.onclick = () => createStickerElement(content, false, saturateVal);
+            buttonList.appendChild(newBtn);
+            input.value = ''; 
+        }
+    </script>
+</body>
+</html>
